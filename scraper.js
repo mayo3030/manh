@@ -1,4 +1,6 @@
 const puppeteer = require('puppeteer-core');
+const { HttpsProxyAgent } = require('https-proxy-agent');
+const WebSocket = require('ws');
 require('dotenv').config();
 
 const BROWSER_WSS = process.env.BROWSER_WSS_ENDPOINT;
@@ -8,18 +10,120 @@ const AUTH_URL = process.env.AUTH_URL;
 const RESULTS_URL = process.env.RESULTS_URL;
 const VEHICLE_MAKES = process.env.VEHICLE_MAKES.split(',').map(m => m.trim().toLowerCase());
 
+// Get proxy from environment
+const PROXY_URL = process.env.HTTPS_PROXY || process.env.https_proxy || process.env.HTTP_PROXY || process.env.http_proxy;
+
+// Check if host should bypass proxy
+function shouldBypassProxy(url) {
+  const noProxy = process.env.NO_PROXY || process.env.no_proxy || '';
+  if (!noProxy) return false;
+
+  try {
+    const urlObj = new URL(url.replace('wss://', 'https://'));
+    const hostname = urlObj.hostname;
+
+    const noProxyList = noProxy.split(',').map(h => h.trim());
+    return noProxyList.some(pattern => {
+      if (pattern === '*') return true;
+      if (pattern.startsWith('*.')) {
+        const domain = pattern.slice(2);
+        return hostname.endsWith(domain) || hostname === domain;
+      }
+      return hostname === pattern;
+    });
+  } catch (e) {
+    return false;
+  }
+}
+
+async function connectWithRetry(maxRetries = 5) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      console.log(`📡 Connection attempt ${i + 1}/${maxRetries}...`);
+
+      let browser;
+      const useProxy = PROXY_URL && !shouldBypassProxy(BROWSER_WSS);
+
+      if (useProxy) {
+        console.log(`🔌 Using proxy for WebSocket connection`);
+        const agent = new HttpsProxyAgent(PROXY_URL);
+
+        // Create custom WebSocket connection through proxy
+        browser = await puppeteer.connect({
+          browserWSEndpoint: BROWSER_WSS,
+          // Provide custom WebSocket factory that uses the proxy agent
+          transport: await createProxiedTransport(BROWSER_WSS, agent),
+        });
+      } else {
+        console.log(`🔌 Direct connection (bypassing proxy)`);
+        // Direct connection without proxy
+        browser = await puppeteer.connect({
+          browserWSEndpoint: BROWSER_WSS,
+        });
+      }
+
+      console.log('✅ Connected to remote browser');
+      return browser;
+    } catch (error) {
+      console.log(`❌ Connection attempt ${i + 1} failed: ${error.message}`);
+      if (i < maxRetries - 1) {
+        const waitTime = Math.pow(2, i) * 1000; // Exponential backoff
+        console.log(`⏳ Waiting ${waitTime / 1000}s before retry...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+      } else {
+        throw new Error(`Failed to connect after ${maxRetries} attempts: ${error.message}`);
+      }
+    }
+  }
+}
+
+// Helper function to create WebSocket transport through proxy
+async function createProxiedTransport(url, agent) {
+  return new Promise((resolve, reject) => {
+    const ws = new WebSocket(url, {
+      agent: agent,
+      perMessageDeflate: false,
+    });
+
+    ws.on('open', () => {
+      resolve({
+        onmessage: null,
+        onclose: null,
+        send: (message) => ws.send(message),
+        close: () => ws.close(),
+      });
+
+      ws.on('message', (data) => {
+        if (resolve.onmessage) {
+          resolve.onmessage.call(null, { data });
+        }
+      });
+
+      ws.on('close', () => {
+        if (resolve.onclose) {
+          resolve.onclose.call(null);
+        }
+      });
+
+      ws.on('error', (error) => {
+        console.error('WebSocket error:', error);
+      });
+    });
+
+    ws.on('error', reject);
+  });
+}
+
 async function scrapeManheim() {
   console.log('🚀 Starting Manheim scraper...');
   console.log('📡 Connecting to remote browser...');
 
   let browser;
   try {
-    // Connect to remote browser
-    browser = await puppeteer.connect({
-      browserWSEndpoint: BROWSER_WSS,
-    });
+    // Connect to remote browser with retry logic
+    browser = await connectWithRetry();
 
-    console.log('✅ Connected to remote browser');
+    console.log('✅ Browser connection established');
 
     const page = await browser.newPage();
     await page.setViewport({ width: 1920, height: 1080 });

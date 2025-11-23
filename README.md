@@ -2,6 +2,8 @@
 
 A web scraper for extracting Honda and Toyota vehicle listings from Manheim auction site using Puppeteer and remote browser automation.
 
+> ⚠️ **Note**: This scraper requires a local environment to run. See [RUNNING_LOCALLY.md](./RUNNING_LOCALLY.md) for detailed setup instructions.
+
 ## Features
 
 - 🔐 OAuth authentication handling

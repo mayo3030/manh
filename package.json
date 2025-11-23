@@ -5,7 +5,8 @@
   "main": "scraper.js",
   "scripts": {
     "start": "node scraper.js",
-    "test": "node scraper.js"
+    "test": "node test-connection.js",
+    "scrape": "node scraper.js"
   },
   "keywords": [
     "scraper",

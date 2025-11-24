@@ -13,8 +13,12 @@ yarn.lock
 # When you run the scraper, it will overwrite this with real data
 page.html
 manheim-results.png
+
+# Vehicle images (downloaded by scraper)
+vehicle-images/
 *.jpg
 *.jpeg
+*.webp
 
 # Logs
 *.log

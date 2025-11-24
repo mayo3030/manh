@@ -114,6 +114,116 @@ async function createProxiedTransport(url, agent) {
   });
 }
 
+// Helper function to download images
+function downloadImage(url, filepath) {
+  return new Promise((resolve, reject) => {
+    const protocol = url.startsWith('https') ? require('https') : require('http');
+    const file = require('fs').createWriteStream(filepath);
+
+    protocol.get(url, (response) => {
+      if (response.statusCode !== 200) {
+        reject(new Error(`Failed to download: ${response.statusCode}`));
+        return;
+      }
+
+      response.pipe(file);
+
+      file.on('finish', () => {
+        file.close();
+        resolve();
+      });
+
+      file.on('error', (err) => {
+        require('fs').unlink(filepath, () => {});
+        reject(err);
+      });
+    }).on('error', (err) => {
+      require('fs').unlink(filepath, () => {});
+      reject(err);
+    });
+  });
+}
+
+// Helper function to generate summary statistics
+function generateSummary(vehicles) {
+  const summary = {
+    totalVehicles: vehicles.length,
+    byMake: {},
+    byYear: {},
+    byModel: {},
+    priceRange: { min: Infinity, max: 0, total: 0, count: 0 },
+    mileageRange: { min: Infinity, max: 0, total: 0, count: 0 },
+    withImages: 0,
+    totalImages: 0,
+  };
+
+  vehicles.forEach(v => {
+    // Count by make
+    if (v.make) {
+      summary.byMake[v.make] = (summary.byMake[v.make] || 0) + 1;
+    }
+
+    // Count by year
+    if (v.year) {
+      summary.byYear[v.year] = (summary.byYear[v.year] || 0) + 1;
+    }
+
+    // Count by model
+    if (v.model) {
+      summary.byModel[v.model] = (summary.byModel[v.model] || 0) + 1;
+    }
+
+    // Price statistics
+    if (v.priceNumeric) {
+      summary.priceRange.min = Math.min(summary.priceRange.min, v.priceNumeric);
+      summary.priceRange.max = Math.max(summary.priceRange.max, v.priceNumeric);
+      summary.priceRange.total += v.priceNumeric;
+      summary.priceRange.count++;
+    }
+
+    // Mileage statistics
+    if (v.mileageNumeric) {
+      summary.mileageRange.min = Math.min(summary.mileageRange.min, v.mileageNumeric);
+      summary.mileageRange.max = Math.max(summary.mileageRange.max, v.mileageNumeric);
+      summary.mileageRange.total += v.mileageNumeric;
+      summary.mileageRange.count++;
+    }
+
+    // Image statistics
+    if (v.images && v.images.length > 0) {
+      summary.withImages++;
+      summary.totalImages += v.images.length;
+    }
+  });
+
+  // Calculate averages
+  if (summary.priceRange.count > 0) {
+    summary.priceRange.average = Math.round(summary.priceRange.total / summary.priceRange.count);
+    summary.priceRange.averageFormatted = '$' + summary.priceRange.average.toLocaleString();
+  }
+
+  if (summary.mileageRange.count > 0) {
+    summary.mileageRange.average = Math.round(summary.mileageRange.total / summary.mileageRange.count);
+    summary.mileageRange.averageFormatted = summary.mileageRange.average.toLocaleString() + ' mi';
+  }
+
+  // Format price range
+  summary.priceRange.minFormatted = summary.priceRange.min !== Infinity ? '$' + summary.priceRange.min.toLocaleString() : 'N/A';
+  summary.priceRange.maxFormatted = summary.priceRange.max !== 0 ? '$' + summary.priceRange.max.toLocaleString() : 'N/A';
+
+  // Format mileage range
+  summary.mileageRange.minFormatted = summary.mileageRange.min !== Infinity ? summary.mileageRange.min.toLocaleString() + ' mi' : 'N/A';
+  summary.mileageRange.maxFormatted = summary.mileageRange.max !== 0 ? summary.mileageRange.max.toLocaleString() + ' mi' : 'N/A';
+
+  // Top models
+  summary.topModels = Object.entries(summary.byModel)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([model]) => model);
+
+  return summary;
+}
+
 async function scrapeManheim() {
   console.log('🚀 Starting Manheim scraper...');
   console.log('📡 Connecting to remote browser...');
@@ -266,18 +376,18 @@ async function scrapeManheim() {
       console.log('Could not find vehicle listings with common selectors, continuing...');
     }
 
-    console.log('📊 Extracting vehicle data...');
+    console.log('📊 Extracting vehicle data with images...');
 
-    // Extract data from the page
+    // Extract data from the page including images
     const vehicles = await page.evaluate((makes) => {
       const results = [];
 
       // Try multiple strategies to find vehicle data
 
       // Strategy 1: Look for common vehicle listing elements
-      const vehicleElements = document.querySelectorAll('[class*="vehicle"], [class*="listing"], [class*="result-item"], [class*="card"]');
+      const vehicleElements = document.querySelectorAll('[class*="vehicle"], [class*="listing"], [class*="result-item"], [class*="card"], [data-*="vehicle"]');
 
-      vehicleElements.forEach(element => {
+      vehicleElements.forEach((element, index) => {
         try {
           const text = element.innerText || element.textContent || '';
           const html = element.innerHTML;
@@ -289,9 +399,22 @@ async function scrapeManheim() {
           if (isTargetMake) {
             // Extract various fields
             const vehicle = {
+              id: `vehicle-${index}`,
               text: text.trim(),
-              html: html.substring(0, 500), // First 500 chars of HTML for debugging
+              timestamp: new Date().toISOString(),
             };
+
+            // Extract images
+            const images = [];
+            const imgElements = element.querySelectorAll('img');
+            imgElements.forEach(img => {
+              const src = img.src || img.getAttribute('data-src') || img.getAttribute('data-lazy-src');
+              if (src && !src.includes('placeholder') && !src.includes('icon')) {
+                images.push(src);
+              }
+            });
+            vehicle.images = images;
+            vehicle.imageCount = images.length;
 
             // Try to extract specific fields
             const yearMatch = text.match(/\b(19|20)\d{2}\b/);
@@ -300,15 +423,29 @@ async function scrapeManheim() {
             const makeMatch = text.match(/\b(Honda|Toyota)\b/i);
             if (makeMatch) vehicle.make = makeMatch[0];
 
-            // Try to find model
+            // Try to find model - expanded patterns
             const modelPatterns = [
-              /(?:Honda|Toyota)\s+([A-Za-z0-9\-]+)/i,
-              /\b(Accord|Civic|CR-V|Pilot|Camry|Corolla|RAV4|Highlander|Tacoma|Tundra)\b/i
+              /(?:Honda|Toyota)\s+([A-Za-z0-9\-\s]+?)(?:\s+\d{4}|\s+\$|\s+VIN|$)/i,
+              /\b(Accord|Civic|CR-V|CRV|Pilot|Odyssey|Passport|Ridgeline|HR-V|HRV|Fit|Insight)\b/i,
+              /\b(Camry|Corolla|RAV4|RAV-4|Highlander|Tacoma|Tundra|4Runner|Sienna|Prius|Avalon|Venza|Sequoia|Land Cruiser)\b/i
             ];
             for (const pattern of modelPatterns) {
               const modelMatch = text.match(pattern);
               if (modelMatch) {
-                vehicle.model = modelMatch[1] || modelMatch[0];
+                vehicle.model = (modelMatch[1] || modelMatch[0]).trim();
+                break;
+              }
+            }
+
+            // Extract trim level
+            const trimPatterns = [
+              /\b(LX|EX|EX-L|Sport|Touring|Elite|Si|Type R)\b/i,
+              /\b(LE|SE|XLE|XSE|Limited|TRD|SR5|Platinum|Nightshade)\b/i
+            ];
+            for (const pattern of trimPatterns) {
+              const trimMatch = text.match(pattern);
+              if (trimMatch) {
+                vehicle.trim = trimMatch[0];
                 break;
               }
             }
@@ -317,13 +454,73 @@ async function scrapeManheim() {
             const vinMatch = text.match(/\b[A-HJ-NPR-Z0-9]{17}\b/);
             if (vinMatch) vehicle.vin = vinMatch[0];
 
-            // Try to find price
-            const priceMatch = text.match(/\$[\d,]+/);
-            if (priceMatch) vehicle.price = priceMatch[0];
+            // Try to find price - multiple formats
+            const pricePatterns = [
+              /\$\s*([\d,]+)/,
+              /Price[:\s]*([\d,]+)/i,
+              /MSRP[:\s]*([\d,]+)/i
+            ];
+            for (const pattern of pricePatterns) {
+              const priceMatch = text.match(pattern);
+              if (priceMatch) {
+                vehicle.price = '$' + priceMatch[1].replace(/,/g, ',');
+                vehicle.priceNumeric = parseInt(priceMatch[1].replace(/,/g, ''));
+                break;
+              }
+            }
 
-            // Try to find mileage
-            const mileageMatch = text.match(/([\d,]+)\s*mi/i);
-            if (mileageMatch) vehicle.mileage = mileageMatch[1];
+            // Try to find mileage - multiple formats
+            const mileagePatterns = [
+              /([\d,]+)\s*mi(?:les)?/i,
+              /Odometer[:\s]*([\d,]+)/i,
+              /Mileage[:\s]*([\d,]+)/i
+            ];
+            for (const pattern of mileagePatterns) {
+              const mileageMatch = text.match(pattern);
+              if (mileageMatch) {
+                vehicle.mileage = mileageMatch[1];
+                vehicle.mileageNumeric = parseInt(mileageMatch[1].replace(/,/g, ''));
+                break;
+              }
+            }
+
+            // Extract color
+            const colorMatch = text.match(/\b(Black|White|Silver|Gray|Grey|Blue|Red|Green|Beige|Tan|Brown|Gold|Yellow|Orange|Purple)\b/i);
+            if (colorMatch) vehicle.color = colorMatch[0];
+
+            // Extract transmission
+            const transMatch = text.match(/\b(Automatic|Manual|CVT|6-Speed|8-Speed|10-Speed|eCVT)\b/i);
+            if (transMatch) vehicle.transmission = transMatch[0];
+
+            // Extract engine info
+            const engineMatch = text.match(/\b(\d\.\dL|\d\.\d-?[Ll]iter|V6|V8|I4|Hybrid|Turbo|VTEC)\b/i);
+            if (engineMatch) vehicle.engine = engineMatch[0];
+
+            // Extract condition
+            const conditionMatch = text.match(/\b(Excellent|Very Good|Good|Fair|Like New|Clean|Certified)\b/i);
+            if (conditionMatch) vehicle.condition = conditionMatch[0];
+
+            // Extract location
+            const locationMatch = text.match(/([A-Z][a-z]+,\s*[A-Z]{2})/);
+            if (locationMatch) vehicle.location = locationMatch[0];
+
+            // Extract drivetrain
+            const drivetrainMatch = text.match(/\b(FWD|RWD|AWD|4WD|4x4|2WD)\b/i);
+            if (drivetrainMatch) vehicle.drivetrain = drivetrainMatch[0];
+
+            // Extract body style
+            const bodyMatch = text.match(/\b(Sedan|Coupe|SUV|Truck|Van|Minivan|Hatchback|Wagon)\b/i);
+            if (bodyMatch) vehicle.bodyStyle = bodyMatch[0];
+
+            // Try to find auction/sale info
+            const auctionMatch = text.match(/(?:Sale|Auction)[:\s]*([^\n]+)/i);
+            if (auctionMatch) vehicle.auctionInfo = auctionMatch[1].trim();
+
+            // Extract any URL from the element
+            const linkElement = element.querySelector('a[href]');
+            if (linkElement) {
+              vehicle.detailUrl = linkElement.href;
+            }
 
             results.push(vehicle);
           }
@@ -339,7 +536,8 @@ async function scrapeManheim() {
           if (bodyText.toLowerCase().includes(make)) {
             results.push({
               note: `Found ${make} mentioned in page`,
-              pageText: bodyText.substring(0, 1000) // First 1000 chars
+              pageText: bodyText.substring(0, 2000), // First 2000 chars
+              allImages: Array.from(document.querySelectorAll('img')).map(img => img.src).filter(src => src)
             });
           }
         });
@@ -349,6 +547,48 @@ async function scrapeManheim() {
     }, VEHICLE_MAKES);
 
     console.log(`✅ Found ${vehicles.length} vehicles matching criteria`);
+
+    // Download vehicle images
+    const fs = require('fs');
+    const path = require('path');
+    const https = require('https');
+    const http = require('http');
+
+    const imagesDir = 'vehicle-images';
+    if (!fs.existsSync(imagesDir)) {
+      fs.mkdirSync(imagesDir, { recursive: true });
+    }
+
+    console.log('📥 Downloading vehicle images...');
+    let totalImages = 0;
+
+    for (let i = 0; i < vehicles.length; i++) {
+      const vehicle = vehicles[i];
+      if (vehicle.images && vehicle.images.length > 0) {
+        vehicle.localImages = [];
+
+        for (let j = 0; j < Math.min(vehicle.images.length, 5); j++) { // Max 5 images per vehicle
+          const imageUrl = vehicle.images[j];
+          try {
+            const imageExt = imageUrl.includes('.jpg') ? '.jpg' :
+                           imageUrl.includes('.png') ? '.png' :
+                           imageUrl.includes('.webp') ? '.webp' : '.jpg';
+
+            const imageName = `${vehicle.id || `vehicle-${i}`}-${j}${imageExt}`;
+            const imagePath = path.join(imagesDir, imageName);
+
+            // Download image
+            await downloadImage(imageUrl, imagePath);
+            vehicle.localImages.push(imagePath);
+            totalImages++;
+          } catch (err) {
+            console.log(`   ⚠️  Failed to download image for vehicle ${i}: ${err.message}`);
+          }
+        }
+      }
+    }
+
+    console.log(`✅ Downloaded ${totalImages} images to ${imagesDir}/`);
 
     // Save API responses that might contain vehicle data
     console.log(`📡 Captured ${apiResponses.length} API responses`);
@@ -360,6 +600,7 @@ async function scrapeManheim() {
       vehiclesFromDOM: vehicles,
       apiResponses: apiResponses.length > 0 ? apiResponses : 'No API responses captured',
       pageUrl: page.url(),
+      summary: generateSummary(vehicles),
     };
 
     // Take a screenshot for debugging
@@ -368,7 +609,6 @@ async function scrapeManheim() {
 
     // Save the page HTML for analysis
     const html = await page.content();
-    const fs = require('fs');
     fs.writeFileSync('page.html', html);
     console.log('💾 Saved page HTML to page.html');
 

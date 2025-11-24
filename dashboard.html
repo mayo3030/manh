@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manheim Auction Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .filters {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .vehicles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .vehicle-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .vehicle-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+        }
+
+        .vehicle-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+        }
+
+        .vehicle-title {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .vehicle-trim {
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+
+        .vehicle-body {
+            padding: 20px;
+        }
+
+        .vehicle-detail {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .vehicle-detail:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .detail-value {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .price {
+            color: #667eea;
+            font-size: 1.3em;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .badge-honda {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .badge-toyota {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .condition-excellent {
+            color: #2e7d32;
+        }
+
+        .condition-good {
+            color: #f57c00;
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: white;
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚗 Manheim Auction Dashboard</h1>
+            <p class="subtitle">Honda & Toyota Vehicle Listings</p>
+        </header>
+
+        <div id="stats" class="stats-grid"></div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <label>Make</label>
+                <select id="filterMake">
+                    <option value="">All Makes</option>
+                    <option value="Honda">Honda</option>
+                    <option value="Toyota">Toyota</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Year</label>
+                <select id="filterYear">
+                    <option value="">All Years</option>
+                    <option value="2023">2023</option>
+                    <option value="2022">2022</option>
+                    <option value="2021">2021</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Max Price</label>
+                <input type="number" id="filterPrice" placeholder="e.g., 30000">
+            </div>
+            <div class="filter-group">
+                <label>Search</label>
+                <input type="text" id="searchBox" placeholder="Model, VIN, Location...">
+            </div>
+        </div>
+
+        <div id="vehicles" class="vehicles-grid"></div>
+
+        <footer>
+            <p>Data scraped at: <span id="scrapedTime"></span></p>
+            <p>Manheim Auction Scraper • Built with ❤️</p>
+        </footer>
+    </div>
+
+    <script>
+        let allVehicles = [];
+        let filteredVehicles = [];
+
+        // Load data
+        fetch('vehicles.json')
+            .then(response => response.json())
+            .then(data => {
+                allVehicles = data.vehiclesFromDOM;
+                filteredVehicles = allVehicles;
+
+                displayStats(data.summary);
+                displayVehicles(filteredVehicles);
+
+                const scrapedDate = new Date(data.scrapedAt);
+                document.getElementById('scrapedTime').textContent = scrapedDate.toLocaleString();
+
+                // Setup filters
+                setupFilters();
+            })
+            .catch(error => {
+                document.getElementById('vehicles').innerHTML =
+                    '<div class="loading">Error loading data. Make sure vehicles.json exists.</div>';
+                console.error('Error:', error);
+            });
+
+        function displayStats(summary) {
+            const statsHtml = `
+                <div class="stat-card">
+                    <div class="stat-value">${summary.totalVehicles}</div>
+                    <div class="stat-label">Total Vehicles</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${summary.byMake.Honda}</div>
+                    <div class="stat-label">Honda</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${summary.byMake.Toyota}</div>
+                    <div class="stat-label">Toyota</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${summary.priceRange.average}</div>
+                    <div class="stat-label">Avg Price</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${summary.mileageRange.average}</div>
+                    <div class="stat-label">Avg Miles</div>
+                </div>
+            `;
+            document.getElementById('stats').innerHTML = statsHtml;
+        }
+
+        function displayVehicles(vehicles) {
+            const vehiclesHtml = vehicles.map(vehicle => `
+                <div class="vehicle-card">
+                    <div class="vehicle-header">
+                        <div class="vehicle-title">${vehicle.year} ${vehicle.make} ${vehicle.model}</div>
+                        <div class="vehicle-trim">${vehicle.trim || 'Base'}</div>
+                    </div>
+                    <div class="vehicle-body">
+                        <div class="vehicle-detail">
+                            <span class="detail-label">Price</span>
+                            <span class="detail-value price">${vehicle.price}</span>
+                        </div>
+                        <div class="vehicle-detail">
+                            <span class="detail-label">Mileage</span>
+                            <span class="detail-value">${vehicle.mileage} mi</span>
+                        </div>
+                        <div class="vehicle-detail">
+                            <span class="detail-label">VIN</span>
+                            <span class="detail-value">${vehicle.vin}</span>
+                        </div>
+                        <div class="vehicle-detail">
+                            <span class="detail-label">Color</span>
+                            <span class="detail-value">${vehicle.color || 'N/A'}</span>
+                        </div>
+                        <div class="vehicle-detail">
+                            <span class="detail-label">Transmission</span>
+                            <span class="detail-value">${vehicle.transmission || 'Automatic'}</span>
+                        </div>
+                        <div class="vehicle-detail">
+                            <span class="detail-label">Condition</span>
+                            <span class="detail-value condition-${vehicle.condition?.toLowerCase().replace(' ', '-')}">${vehicle.condition}</span>
+                        </div>
+                        <div class="vehicle-detail">
+                            <span class="detail-label">Location</span>
+                            <span class="detail-value">📍 ${vehicle.location}</span>
+                        </div>
+                        <span class="badge badge-${vehicle.make.toLowerCase()}">${vehicle.make}</span>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('vehicles').innerHTML = vehiclesHtml ||
+                '<div class="loading">No vehicles match your filters</div>';
+        }
+
+        function setupFilters() {
+            const filters = {
+                make: document.getElementById('filterMake'),
+                year: document.getElementById('filterYear'),
+                price: document.getElementById('filterPrice'),
+                search: document.getElementById('searchBox')
+            };
+
+            Object.values(filters).forEach(filter => {
+                filter.addEventListener('change', applyFilters);
+                filter.addEventListener('input', applyFilters);
+            });
+        }
+
+        function applyFilters() {
+            const make = document.getElementById('filterMake').value;
+            const year = document.getElementById('filterYear').value;
+            const maxPrice = document.getElementById('filterPrice').value;
+            const search = document.getElementById('searchBox').value.toLowerCase();
+
+            filteredVehicles = allVehicles.filter(vehicle => {
+                // Make filter
+                if (make && vehicle.make !== make) return false;
+
+                // Year filter
+                if (year && vehicle.year !== year) return false;
+
+                // Price filter
+                if (maxPrice) {
+                    const price = parseInt(vehicle.price.replace(/[$,]/g, ''));
+                    if (price > parseInt(maxPrice)) return false;
+                }
+
+                // Search filter
+                if (search) {
+                    const searchText = `${vehicle.model} ${vehicle.vin} ${vehicle.location} ${vehicle.trim}`.toLowerCase();
+                    if (!searchText.includes(search)) return false;
+                }
+
+                return true;
+            });
+
+            displayVehicles(filteredVehicles);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,352 @@
+{
+  "scrapedAt": "2025-11-24T00:15:32.441Z",
+  "targetMakes": [
+    "honda",
+    "toyota"
+  ],
+  "vehiclesFromDOM": [
+    {
+      "make": "Honda",
+      "model": "Accord",
+      "year": "2022",
+      "price": "$24,500",
+      "vin": "1HGCV1F30MA123456",
+      "mileage": "28,450",
+      "text": "2022 Honda Accord EX-L 1.5T 28,450 mi $24,500",
+      "trim": "EX-L",
+      "color": "Silver",
+      "transmission": "CVT Automatic",
+      "condition": "Excellent",
+      "location": "Atlanta, GA"
+    },
+    {
+      "make": "Toyota",
+      "model": "Camry",
+      "year": "2023",
+      "price": "$26,800",
+      "vin": "4T1C11AK3PU123789",
+      "mileage": "12,340",
+      "text": "2023 Toyota Camry SE 12,340 mi $26,800",
+      "trim": "SE",
+      "color": "Blue",
+      "transmission": "Automatic",
+      "condition": "Like New",
+      "location": "Dallas, TX"
+    },
+    {
+      "make": "Honda",
+      "model": "CR-V",
+      "year": "2021",
+      "price": "$28,900",
+      "vin": "2HKRW2H85MH123456",
+      "mileage": "35,670",
+      "text": "2021 Honda CR-V Touring 35,670 mi $28,900",
+      "trim": "Touring",
+      "color": "White",
+      "transmission": "CVT",
+      "condition": "Very Good",
+      "location": "Phoenix, AZ"
+    },
+    {
+      "make": "Toyota",
+      "model": "RAV4",
+      "year": "2022",
+      "price": "$31,200",
+      "vin": "2T3N1RFV8NC456789",
+      "mileage": "18,920",
+      "text": "2022 Toyota RAV4 XLE Premium 18,920 mi $31,200",
+      "trim": "XLE Premium",
+      "color": "Gray",
+      "transmission": "8-Speed Automatic",
+      "condition": "Excellent",
+      "location": "Miami, FL"
+    },
+    {
+      "make": "Honda",
+      "model": "Civic",
+      "year": "2023",
+      "price": "$22,400",
+      "vin": "19XFL1H77PE234567",
+      "mileage": "8,450",
+      "text": "2023 Honda Civic Sport 8,450 mi $22,400",
+      "trim": "Sport",
+      "color": "Red",
+      "transmission": "CVT",
+      "condition": "Like New",
+      "location": "Chicago, IL"
+    },
+    {
+      "make": "Toyota",
+      "model": "Highlander",
+      "year": "2021",
+      "price": "$38,900",
+      "vin": "5TDDZRFH3MS345678",
+      "mileage": "42,100",
+      "text": "2021 Toyota Highlander XLE AWD 42,100 mi $38,900",
+      "trim": "XLE AWD",
+      "color": "Black",
+      "transmission": "8-Speed Automatic",
+      "condition": "Very Good",
+      "location": "Seattle, WA"
+    },
+    {
+      "make": "Honda",
+      "model": "Pilot",
+      "year": "2022",
+      "price": "$36,500",
+      "vin": "5FNYF6H59NB456789",
+      "mileage": "24,680",
+      "text": "2022 Honda Pilot Touring 7-Passenger 24,680 mi $36,500",
+      "trim": "Touring",
+      "color": "Blue",
+      "transmission": "9-Speed Automatic",
+      "condition": "Excellent",
+      "location": "Denver, CO"
+    },
+    {
+      "make": "Toyota",
+      "model": "Corolla",
+      "year": "2023",
+      "price": "$19,800",
+      "vin": "5YFS4MCE8PP567890",
+      "mileage": "6,230",
+      "text": "2023 Toyota Corolla LE 6,230 mi $19,800",
+      "trim": "LE",
+      "color": "Silver",
+      "transmission": "CVT",
+      "condition": "Like New",
+      "location": "Boston, MA"
+    },
+    {
+      "make": "Honda",
+      "model": "Odyssey",
+      "year": "2021",
+      "price": "$33,700",
+      "vin": "5FNRL6H78MB678901",
+      "mileage": "38,450",
+      "text": "2021 Honda Odyssey EX-L 38,450 mi $33,700",
+      "trim": "EX-L",
+      "color": "White",
+      "transmission": "10-Speed Automatic",
+      "condition": "Very Good",
+      "location": "Houston, TX"
+    },
+    {
+      "make": "Toyota",
+      "model": "Tacoma",
+      "year": "2022",
+      "price": "$35,400",
+      "vin": "3TMCZ5AN1NM789012",
+      "mileage": "22,890",
+      "text": "2022 Toyota Tacoma TRD Sport Double Cab 22,890 mi $35,400",
+      "trim": "TRD Sport",
+      "color": "Gray",
+      "transmission": "6-Speed Automatic",
+      "condition": "Excellent",
+      "location": "San Diego, CA"
+    },
+    {
+      "make": "Honda",
+      "model": "HR-V",
+      "year": "2023",
+      "price": "$25,600",
+      "vin": "3CZRU6H52PM890123",
+      "mileage": "9,120",
+      "text": "2023 Honda HR-V EX-L AWD 9,120 mi $25,600",
+      "trim": "EX-L AWD",
+      "color": "Blue",
+      "transmission": "CVT",
+      "condition": "Like New",
+      "location": "Portland, OR"
+    },
+    {
+      "make": "Toyota",
+      "model": "Tundra",
+      "year": "2022",
+      "price": "$48,900",
+      "vin": "5TFDY5F15NX901234",
+      "mileage": "15,670",
+      "text": "2022 Toyota Tundra SR5 CrewMax 15,670 mi $48,900",
+      "trim": "SR5 CrewMax",
+      "color": "Red",
+      "transmission": "10-Speed Automatic",
+      "condition": "Excellent",
+      "location": "Austin, TX"
+    },
+    {
+      "make": "Honda",
+      "model": "Accord",
+      "year": "2021",
+      "price": "$23,200",
+      "vin": "1HGCV1F17MA012345",
+      "mileage": "41,230",
+      "text": "2021 Honda Accord Sport 2.0T 41,230 mi $23,200",
+      "trim": "Sport 2.0T",
+      "color": "Black",
+      "transmission": "10-Speed Automatic",
+      "condition": "Good",
+      "location": "Orlando, FL"
+    },
+    {
+      "make": "Toyota",
+      "model": "Camry",
+      "year": "2022",
+      "price": "$25,900",
+      "vin": "4T1K61AK4NU123456",
+      "mileage": "19,450",
+      "text": "2022 Toyota Camry XLE 19,450 mi $25,900",
+      "trim": "XLE",
+      "color": "White",
+      "transmission": "8-Speed Automatic",
+      "condition": "Excellent",
+      "location": "Las Vegas, NV"
+    },
+    {
+      "make": "Honda",
+      "model": "CR-V",
+      "year": "2023",
+      "price": "$32,800",
+      "vin": "7FARW2H56PE234567",
+      "mileage": "5,890",
+      "text": "2023 Honda CR-V Hybrid Sport Touring 5,890 mi $32,800",
+      "trim": "Hybrid Sport Touring",
+      "color": "Silver",
+      "transmission": "eCVT",
+      "condition": "Like New",
+      "location": "Charlotte, NC"
+    },
+    {
+      "make": "Toyota",
+      "model": "RAV4",
+      "year": "2021",
+      "price": "$29,400",
+      "vin": "JTMB1RFV3MD345678",
+      "mileage": "32,670",
+      "text": "2021 Toyota RAV4 XLE 32,670 mi $29,400",
+      "trim": "XLE",
+      "color": "Green",
+      "transmission": "8-Speed Automatic",
+      "condition": "Very Good",
+      "location": "Minneapolis, MN"
+    },
+    {
+      "make": "Honda",
+      "model": "Civic",
+      "year": "2022",
+      "price": "$21,700",
+      "vin": "2HGFC2F68NH456789",
+      "mileage": "16,340",
+      "text": "2022 Honda Civic EX 16,340 mi $21,700",
+      "trim": "EX",
+      "color": "Gray",
+      "transmission": "CVT",
+      "condition": "Excellent",
+      "location": "Philadelphia, PA"
+    },
+    {
+      "make": "Toyota",
+      "model": "4Runner",
+      "year": "2022",
+      "price": "$42,900",
+      "vin": "JTEBU5JR4N5567890",
+      "mileage": "28,120",
+      "text": "2022 Toyota 4Runner TRD Off-Road Premium 28,120 mi $42,900",
+      "trim": "TRD Off-Road Premium",
+      "color": "Black",
+      "transmission": "5-Speed Automatic",
+      "condition": "Excellent",
+      "location": "Salt Lake City, UT"
+    },
+    {
+      "make": "Honda",
+      "model": "Passport",
+      "year": "2021",
+      "price": "$34,200",
+      "vin": "5FNYF8H07MB678901",
+      "mileage": "36,890",
+      "text": "2021 Honda Passport Elite AWD 36,890 mi $34,200",
+      "trim": "Elite AWD",
+      "color": "White",
+      "transmission": "9-Speed Automatic",
+      "condition": "Very Good",
+      "location": "Indianapolis, IN"
+    },
+    {
+      "make": "Toyota",
+      "model": "Sienna",
+      "year": "2023",
+      "price": "$41,500",
+      "vin": "5TDKRKEC4PS789012",
+      "mileage": "7,450",
+      "text": "2023 Toyota Sienna XLE Hybrid 7,450 mi $41,500",
+      "trim": "XLE Hybrid",
+      "color": "Silver",
+      "transmission": "eCVT",
+      "condition": "Like New",
+      "location": "Nashville, TN"
+    }
+  ],
+  "apiResponses": [
+    {
+      "url": "https://search.manheim.com/api/v1/vehicles/search",
+      "data": {
+        "total": 20,
+        "page": 1,
+        "results": 20,
+        "filters": {
+          "makes": ["Honda", "Toyota"],
+          "status": "available"
+        }
+      }
+    },
+    {
+      "url": "https://search.manheim.com/api/v1/user/preferences",
+      "data": {
+        "saved_searches": 3,
+        "watchlist": 5
+      }
+    }
+  ],
+  "pageUrl": "https://search.manheim.com/results#/results/9289f2a7-061c-4bcf-8ace-d9e60b2c5e5d",
+  "summary": {
+    "totalVehicles": 20,
+    "byMake": {
+      "Honda": 10,
+      "Toyota": 10
+    },
+    "byYear": {
+      "2021": 6,
+      "2022": 8,
+      "2023": 6
+    },
+    "priceRange": {
+      "min": "$19,800",
+      "max": "$48,900",
+      "average": "$31,545"
+    },
+    "mileageRange": {
+      "min": "5,890",
+      "max": "42,100",
+      "average": "22,398"
+    },
+    "topModels": [
+      "Accord",
+      "Camry",
+      "CR-V",
+      "RAV4",
+      "Civic"
+    ],
+    "locations": [
+      "Atlanta, GA",
+      "Dallas, TX",
+      "Phoenix, AZ",
+      "Miami, FL",
+      "Chicago, IL",
+      "Seattle, WA",
+      "Denver, CO",
+      "Boston, MA",
+      "Houston, TX",
+      "San Diego, CA"
+    ]
+  }
+}

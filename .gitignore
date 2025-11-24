@@ -8,10 +8,11 @@ yarn.lock
 .env.local
 .env.*.local
 
-# Output files
-vehicles.json
+# Output files (actual scraper output)
+# Note: vehicles.json is committed as sample data for dashboard development
+# When you run the scraper, it will overwrite this with real data
 page.html
-*.png
+manheim-results.png
 *.jpg
 *.jpeg
 
